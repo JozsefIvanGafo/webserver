@@ -2,10 +2,9 @@
 from socket import *
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from files.files import *
 
 
-class Webserver:
+class WebServer:
 
     def __init__(self,serverIP:str,serverPort:int,num_clients:int) -> None:
         #Define the socket variables
@@ -38,9 +37,10 @@ class Webserver:
         except KeyboardInterrupt:
             #When we detect a ctrl C
             print("closing the server...")
+        finally:
             self._server_socket.close()
             print("The server is closed")
-
+            
 
 
     def __loop(self):
@@ -51,20 +51,26 @@ class Webserver:
         with ThreadPoolExecutor(max_workers=self._number_clients) as thread:
             while True:
                 #We wait until we receive an answer
-                client_socket=self._server_socket.accept()
+                connection_socket,client_address=self._server_socket.accept()
+
+
                 #We submit on the thread
-                thread.submit(self.__handle_client,client_socket)
+                thread.submit(self.__handle_client,(connection_socket,client_address))
 
 
 
 
-
-
-
-
-    def __handle_client(self,client_socket):
+    def __handle_client(self,connection_socket:socket,client_addres):
         """
         Method to handle one http client request
         """
-        connection_socket, client_address=client_socket
-        
+    
+        data=connection_socket.recv(2048).decode()
+        print(data)
+        connection_socket.close()
+
+
+
+
+        with self.__lock:
+            pass

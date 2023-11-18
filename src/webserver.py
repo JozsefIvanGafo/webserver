@@ -1,7 +1,11 @@
 #We define the imports
-from socket import *
 import threading
+from socket import *
 from concurrent.futures import ThreadPoolExecutor
+
+#own imports
+from request.request import Request
+from response.response import Response
 
 
 class WebServer:
@@ -53,24 +57,33 @@ class WebServer:
                 #We wait until we receive an answer
                 connection_socket,client_address=self._server_socket.accept()
 
-
+                self.__handle_client(connection_socket,client_address)
                 #We submit on the thread
-                thread.submit(self.__handle_client,(connection_socket,client_address))
+                thread.submit(self.__handle_client,connection_socket,client_address)
 
 
 
 
-    def __handle_client(self,connection_socket:socket,client_addres):
+    def __handle_client(self,connection_socket:socket,client_address):
         """
         Method to handle one http client request
         """
-    
+        #Extract data
+        print(f"Received request from {threading.current_thread}")
         data=connection_socket.recv(2048).decode()
-        print(data)
-        connection_socket.close()
+        request=Request().extract_request(data)
+        print(request)
 
 
-
-
+        #We process the answer
         with self.__lock:
-            pass
+            print(f"Processing answer from {threading.current_thread}")
+            response=Response().generate_response(request)
+
+
+            print(f"Sending response from {threading.current_thread}")
+            connection_socket.sendto(response.encode(),client_address)
+
+
+            connection_socket.close()
+

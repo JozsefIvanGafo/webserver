@@ -1,6 +1,7 @@
 
 
-
 class Response:
-    def __init__(self) -> None:
-        pass
+
+
+    def generate_response(self,request:dict)->str:
+        return ""
